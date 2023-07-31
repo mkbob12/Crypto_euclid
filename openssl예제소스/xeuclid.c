@@ -20,39 +20,83 @@ void printBN(char *msg, BIGNUM * a)
 
 BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
 {
-    // ax + by = t 
-   // b가 0이면 BN_value_one 을 0으로 반환  
-   if (BN_is_zero(b))
-   {
-    BN_copy(x, BN_value_one()); 
-    BN_copy(y, BN_value_one());
-    return BN_dup(a);
-   }
+    // 
 
-    // 확장 유클리드 알고리즘을 사용하여 d, x, y를 계산 
-
-    BIGNUM *x1 = BN_new();
-    BIGNUM *y1 = BN_new();
-    BN_CTX *ctx = BN_CTX_new(); // 구조체 선언 
-
-
-
-    BN_mod(x1, a, b, ctx); // 모드 연산  ( 나머지 ) x1 = a mod b  
-    BIGNUM *gcd = XEuclid(x1, y1, b, x1);  // x1을 구하는 것 
+    BIGNUM *r1, *r2, *s1, *s2, *t1, *t2, *q, *r, *s, *t, *c;
+    BIGNUM *gcd = BN_new();
     
-    //printBN("x1 = ", x1);
+    // ====== 초기값 설정 ======== 
+    r1 = BN_dup(a); // copy a to r1
+    r2 = BN_dup(b); // copy b to r2 
 
-    BN_div(x, NULL, a, b, ctx);
-    BN_mod(y, x, y1, ctx);
-    BN_mul(x, x, gcd, ctx);
-    BN_sub(x, y1, x);
+    s1 = BN_new();
+    s2 = BN_new();
+    t1 = BN_new();
+    t2 = BN_new();
+    
 
-    BN_free(x1);
-    BN_free(y1);
-    BN_CTX_free(ctx);
+    q = BN_new();
+    r = BN_new();
+    s = BN_new();
+    t = BN_new();
+    c = BN_new(); // 변수 c 초기화
+
+
+    BN_set_word(s1,1);
+    BN_set_word(s2,0);
+    BN_set_word(t1,0);
+    BN_set_word(t2,1);
+    
+    while(BN_is_zero(r2) != 1){
+        // 임시 buff 
+        
+        
+        BN_div(q, r, r1, r2, BN_CTX_new()); // q = r1 /r2 , r = r1 % r2 
+        r1 = BN_dup(r2);
+        r2 = BN_dup(r);
+   
+        //BN_mul(r, q, s2, BN_CTX_new());
+
+        // s = s1 - s2 * q 
+        BN_mul(c, q, s2, BN_CTX_new()); // c = s2 * q 
+        BN_sub(c,s1,c); // s1 - s2 * q  
+    
+        s = BN_dup(c);
+        
+        // dump 하기 
+        s1 = BN_dup(s2);
+        s2 =  BN_dup(s);
+
+        // t = t1 - t2 * q 
+        BN_mul(c,q,t2 ,BN_CTX_new()); // c = t2 * q 
+        BN_sub(c,t1,c); // t1 - t2 * q
+        t = BN_dup(c); // t = t1 - t2  * q  
+        t1 = BN_dup(t2);
+        t2 = BN_dup(t);
+
+      
+    }
+    gcd = BN_dup(r1);
+    BN_copy(x, s1); // BN_dup 가 아닌 BN_copy로 해야 오류 해결  ) 이유는 ,, 
+    BN_copy(y, t1);
+
+ 
+    // 할당 해제 
+    BN_free(q);
+    BN_free(r1);
+    BN_free(r2);
+    BN_free(r);
+    BN_free(s1);
+    BN_free(s2);
+    BN_free(s);
+    BN_free(t1);
+    BN_free(t2);
+    BN_free(t);
+    BN_free(c);
+
+    
 
     return gcd;
-
     
 }
 
