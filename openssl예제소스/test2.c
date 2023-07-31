@@ -14,18 +14,22 @@ void printBN(char *msg, BIGNUM * a)
 
 int main () 
 { 
-	BN_CTX *ctx = BN_CTX_new();
+	BN_CTX *ctx = BN_CTX_new(); // 버퍼 크기 저장 
 	BIGNUM *a = BN_new();
 	BIGNUM *b = BN_new();
 	BIGNUM *res = BN_new();
+
 	// Initialize a, b, n
 	BN_hex2bn(&a, "111");
 	BN_hex2bn(&b, "222");
+
 	printBN("a = ", a);
 	printBN("b = ", b);
-	BN_mul(res,a,b,ctx);
+
+	BN_mul(res,a,b,ctx); // a * b 
 	printBN("a*b = ", res);
+
 	BN_add(res,a,b);
-	printBN("a+b = ", res);
+	printBN("a+b = ", res); // a + b 
 	return 0;
 }
